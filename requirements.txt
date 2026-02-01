@@ -1,0 +1,8 @@
+streamlit
+requests
+beautifulsoup4
+python-dotenv
+google-genai
+pinecone
+langchain
+langchain-text-splitters
