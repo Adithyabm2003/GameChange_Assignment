@@ -77,7 +77,7 @@ def generate_answer(question, context):
 
 st.title("Emirates NBD Credit Card Assistant")
 st.markdown("Ask me anything about credit card requirements, benefits, or fees.")
-st.markdown("Developed as part of the onboarding requirement for GameChange company by Adithya B M")
+# st.markdown("Developed as part of the onboarding requirement for GameChange company by Adithya B M")
 
 
 
@@ -113,4 +113,5 @@ if prompt := st.chat_input("How can I help you today?"):
                     st.text(context)
 
     # Add assistant response to history
+
     st.session_state.messages.append({"role": "assistant", "content": full_response})
