@@ -6,14 +6,11 @@ from pinecone import Pinecone
 from google import genai
 from google.genai import types, errors
 
-
 load_dotenv()
-
 st.set_page_config(page_title="Emirates NBD Card Assistant ")
 
 @st.cache_resource
 def init_clients():
-    """Cache clients so they don't re-initialize on every rerun"""
     genai_client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
     pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
     index = pc.Index(os.getenv("PINECONE_INDEX"))
@@ -21,17 +18,16 @@ def init_clients():
 
 genai_client, index = init_clients()
 
-
 def retrieve_context(user_query, top_k=2):
     try:
         embed_res = genai_client.models.embed_content(
-        model="models/embedding-001",   # FIXED
-        contents=user_query,            # FIXED
-        config=types.EmbedContentConfig(
-            task_type="RETRIEVAL_QUERY"
+            model="gemini-embedding-001",   # Updated model ID
+            contents=user_query,
+            config=types.EmbedContentConfig(
+                task_type="RETRIEVAL_QUERY",
+                output_dimensionality=768     # Reduce to 768 dimensions for cost savings
             )
         )
-
         query_vector = embed_res.embeddings[0].values
 
         search_results = index.query(
@@ -64,10 +60,9 @@ def generate_answer(question, context):
     USER QUESTION:
     {question}
     """
-    
     try:
         response = genai_client.models.generate_content(
-            model="gemini-2.5-flash", # Note: Using stable 2.0-flash
+            model="gemini-2.5-flash",  # Existing generation model
             contents=prompt,
             config=types.GenerateContentConfig(temperature=0.1)
         )
@@ -77,44 +72,28 @@ def generate_answer(question, context):
             return "Rate limit hit. Please wait a moment and try again."
         return f"An error occurred: {e}"
 
-
 st.title("Emirates NBD Credit Card Assistant")
 st.markdown("Ask me anything about credit card requirements, benefits, or fees.")
-# st.markdown("Developed as part of the onboarding requirement for GameChange company by Adithya B M")
 
-
-
-# Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display chat history from session state
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-# React to user input
 if prompt := st.chat_input("How can I help you today?"):
-    # Display user message
     st.chat_message("user").markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
 
     with st.chat_message("assistant"):
         with st.spinner("Searching bank records..."):
-            #  Get Context
             context = retrieve_context(prompt)
-            
-            #  Generate Response
             full_response = generate_answer(prompt, context)
-            
-            #  Show Response
             st.markdown(full_response)
-            
-            # Optional: Show sources in an expander
+
             if context:
                 with st.expander("View Retrieved Sources"):
                     st.text(context)
-
-    # Add assistant response to history
 
     st.session_state.messages.append({"role": "assistant", "content": full_response})
