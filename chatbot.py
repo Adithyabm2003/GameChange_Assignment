@@ -24,12 +24,14 @@ index = pc.Index(PINECONE_INDEX)
 def retrieve_context(user_query, top_k=2):
     # 1. Embed the query (must use task_type='RETRIEVAL_QUERY')
     embed_res = genai_client.models.embed_content(
-        model="text-embedding-004",
-        contents=[user_query],
-        config=types.EmbedContentConfig(task_type='RETRIEVAL_QUERY')
+        model="models/embedding-001",   # FIXED
+        contents=user_query,            # FIXED
+        config=types.EmbedContentConfig(
+            task_type="RETRIEVAL_QUERY"
+        )
     )
-    query_vector = embed_res.embeddings[0].values
 
+    query_vector = embed_res.embeddings[0].values
     # 2. Query Pinecone (This uses the 'cosine' metric set on your index)
     search_results = index.query(
         vector=query_vector,
