@@ -25,10 +25,13 @@ genai_client, index = init_clients()
 def retrieve_context(user_query, top_k=2):
     try:
         embed_res = genai_client.models.embed_content(
-            model="text-embedding-004",
-            contents=[user_query],
-            config=types.EmbedContentConfig(task_type='RETRIEVAL_QUERY')
+        model="models/embedding-001",   # FIXED
+        contents=user_query,            # FIXED
+        config=types.EmbedContentConfig(
+            task_type="RETRIEVAL_QUERY"
+            )
         )
+
         query_vector = embed_res.embeddings[0].values
 
         search_results = index.query(
